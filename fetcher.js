@@ -1,16 +1,32 @@
 args = process.argv.slice(2);
 const request = require('request');
 const fs = require('fs');
-let url = args[0]
+let url = args[0];
+let filePath = args[1];
 
-request(url, (error, response, body) => {
-  console.log('error:', error); // Print the error if one occurred
-  console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
-  fs.writeFile('./index.html', body, 'utf8', (err) => {
+const req = (url,filePath) => {
+  fs.access(filePath, fs.F_OK, (err) => {
+    if (err) {
+      console.error(err)
+      return console.log("File does not exist");
+    }
+  
+  request(url, (error, response, body) => {
+  fs.writeFile(filePath, body, 'utf8', (err) => {
     if(err){
-      console.log(err.message);
+      throw err;
     } else{
-      console.log('data written');
+      fs.stat(filePath, (err, stats) => {
+        if (err) {
+          throw err;
+        } else {
+          console.log(`Downloaded and saved ${stats.size} bytes to ${filePath}`);
+        }
+      })
     }
   })
-});
+  })
+})
+}
+
+req(url,filePath);
